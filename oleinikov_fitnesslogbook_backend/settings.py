@@ -43,6 +43,7 @@ INSTALLED_APPS = [
 
 # Middleware configuration
 MIDDLEWARE = [
+    "whitenoise.middleware.WhiteNoiseMiddleware", 
     'corsheaders.middleware.CorsMiddleware',  
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -147,6 +148,10 @@ USE_I18N = True
 USE_TZ = True
 
 # Static files settings
+STATIC_ROOT = BASE_DIR / "staticfiles"
+# Add whitenoise static files configuration
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
 STATIC_URL = 'static/'
 
 # Default primary key field type
