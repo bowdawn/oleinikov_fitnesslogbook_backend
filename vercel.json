@@ -1,5 +1,5 @@
 {
-    "version": 2,
+   
     "builds": [
       {
         "src": "core/wsgi.py",
@@ -9,7 +9,7 @@
     "routes": [
       {
         "src": "/(.*)",
-        "dest": "core/wsgi.py"
+        "dest": "oleinikov_fitnesslogbook_backend/wsgi.py"
       }
     ]
   }
