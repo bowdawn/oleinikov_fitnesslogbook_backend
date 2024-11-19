@@ -2,6 +2,5 @@ dj_database_url==2.2.0
 Django==5.1.2
 graphene==3.3
 graphql_core==3.2.5
-PyJWT==2.9.0
 PyJWT==2.10.0
 python-decouple==3.8
