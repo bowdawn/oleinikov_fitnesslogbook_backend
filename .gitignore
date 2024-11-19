@@ -1,0 +1,58 @@
+# Python
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+*.env
+.env
+
+# Django
+db.sqlite3
+/media/
+*.log
+*.pot
+*.py[co]
+
+# Vercel
+.vercel/
+.vscode/
+
+# Virtual Environments
+venv/
+env/
+
+# IDEs/Editors
+.idea/
+*.swp
+*.swo
+*.swn
+*.sublime-project
+*.sublime-workspace
+
+# MacOS
+.DS_Store
+
+# Static and Compiled Files
+staticfiles/
+node_modules/
+
+# Coverage Reports
+htmlcov/
+*.cover
+*.coverage
+*.coverage.*
+
+# Unit Test / Testing Results
+.tox/
+.nox/
+*.pytest_cache/
+*.pytest/
+
+# Cache and Backup
+*.bak
+*.tmp
+*.temp
+.cache/
+
+# Secrets
+*.key
