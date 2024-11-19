@@ -25,7 +25,7 @@ SECRET_KEY = config('SECRET_KEY', default='your-default-secret-key')
 DEBUG = config('DEBUG', default=True, cast=bool)
 
 # Allowed hosts, ensure to update for production
-ALLOWED_HOSTS = ['*.vercel.app', , 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['*.vercel.app', 'localhost', '127.0.0.1']
 
 # Installed applications
 INSTALLED_APPS = [
