@@ -78,12 +78,14 @@ GRAPHQL_JWT = {
 # CORS and CSRF settings
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8080",  # Replace with your frontend's URL in production
+    "https://oleinikov-fitnesslogbook.vercel.app",
 ]
 CORS_ALLOW_CREDENTIALS = True
 
 CSRF_TRUSTED_ORIGINS = [
     'http://localhost:8000',
-    'http://127.0.0.1:8000'
+    'http://127.0.0.1:8000',
+    'https://oleinikov-fitnesslogbook.vercel.app',  # Add your Vercel frontend URL
 ]
 
 CORS_ALLOW_METHODS = [
