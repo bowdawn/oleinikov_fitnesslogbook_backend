@@ -6,7 +6,12 @@ import datetime
 import jwt 
 from django.conf import settings
 from collections import defaultdict
+from django.db.models import Max
 
+
+class MaxWeightPerReps(graphene.ObjectType):
+        reps = graphene.Int()
+        max_weight = graphene.Float()
 
 
 class Query(graphene.ObjectType):
@@ -30,6 +35,10 @@ class Query(graphene.ObjectType):
     swimming_attendance_last_week_count = graphene.Int()
     swimming_attendance_total_count = graphene.Int()
     users = graphene.List(UserType)
+    max_weight_per_reps = graphene.List(
+        MaxWeightPerReps, 
+        exercise_name=graphene.String(required=True)
+    )
 
     def resolve_users(self, info):
         return User.objects.all()
@@ -272,38 +281,30 @@ class Query(graphene.ObjectType):
         except Workout.DoesNotExist:
             raise GraphQLError(f"Workout with ID {id} does not exist.")
 
-    def resolve_workout_detail(self, info, id, exercise_name=None):
-       """
-       Resolves a single WorkoutDetail by its ID and optionally filters by exercise name.
+    def resolve_workout_detail(self, info, id):
+        try:
+            return WorkoutDetail.objects.get(pk=id)
+        except WorkoutDetail.DoesNotExist:
+            raise GraphQLError(f"Workout detail with ID {id} does not exist.")
+
+   
     
-       Args:
-           info: GraphQL context information.
-           id: The primary key of the WorkoutDetail to retrieve.
-           exercise_name: Optional name of the exercise to filter by.
     
-       Returns:
-           WorkoutDetail object if found and matches the optional exercise_name.
-    
-       Raises:
-           GraphQLError: If the WorkoutDetail does not exist or does not match the exercise_name.
-       """
-       try:
-           # Base query
-           query = WorkoutDetail.objects.filter(pk=id)
-           
-           # Optionally filter by exercise_name
-           if exercise_name:
-               query = query.filter(exercise__name=exercise_name)
-           
-           # Get the result or raise an error
-           workout_detail = query.first()
-           if not workout_detail:
-               raise GraphQLError(
-                   f"Workout detail with ID {id} and exercise name '{exercise_name}' does not exist."
-                   if exercise_name
-                   else f"Workout detail with ID {id} does not exist."
-               )
-           
-           return workout_detail
-       except Exception as e:
-           raise GraphQLError(f"An unexpected error occurred: {str(e)}")
+
+    def resolve_max_weight_per_reps(self, info, exercise_name):
+        # Fetch the exercise by name
+        try:
+            exercise = Exercise.objects.get(name=exercise_name)
+        except Exercise.DoesNotExist:
+            raise GraphQLError(f"Exercise with name '{exercise_name}' does not exist.")
+
+        # Aggregate maximum weight for each rep count
+        max_weights = (
+            WorkoutDetail.objects.filter(exercise=exercise)
+            .values('reps')  # Group by reps
+            .annotate(max_weight=Max('weight'))  # Annotate with the maximum weight
+            .order_by('reps')  # Sort by reps (optional)
+        )
+
+        # Convert query results into objects compatible with the GraphQL type
+        return [MaxWeightPerReps(reps=entry['reps'], max_weight=entry['max_weight']) for entry in max_weights]
