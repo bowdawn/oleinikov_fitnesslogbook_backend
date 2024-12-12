@@ -9,6 +9,7 @@ from collections import defaultdict
 from django.db.models import Max
 
 
+
 class MaxWeightPerReps(graphene.ObjectType):
         reps = graphene.Int()
         max_weight = graphene.Float()
@@ -50,15 +51,11 @@ class Query(graphene.ObjectType):
         # Calculate the most recent Monday
         monday = today - datetime.timedelta(days=today.weekday())
         
-        # Filter for workouts categorized as CrossFit and attended this week
-        crossfit = Sport.objects.filter(name="CrossFit").first()
-        
-        if not crossfit:
-            return 0  # No CrossFit sport found
+     
         
         # Filter workouts for the current week and category, counting unique dates only
         unique_days_this_week = Workout.objects.filter(
-            sport=crossfit,
+            sport__name__iexact="CrossFit",
             date__gte=monday,
             date__lte=today
         ).values('date').distinct().count()  # Use 'date' to count unique workout days
@@ -73,15 +70,11 @@ class Query(graphene.ObjectType):
         last_monday = today - datetime.timedelta(days=today.weekday() + 7)
         last_sunday = last_monday + datetime.timedelta(days=6)
         
-        # Filter for workouts categorized as CrossFit and attended last week
-        crossfit = Sport.objects.filter(name="CrossFit").first()
-        
-        if not crossfit:
-            return 0  # No CrossFit sport found
+       
         
         # Filter workouts for last week, counting unique dates only
         unique_days_last_week = Workout.objects.filter(
-            sport=crossfit,
+            sport__name__iexact="CrossFit",
             date__gte=last_monday,
             date__lte=last_sunday
         ).values('date').distinct().count()
@@ -91,20 +84,14 @@ class Query(graphene.ObjectType):
         return unique_days_last_week
     
     
-    def resolve_crossfit_attendance_total_count(self, info):
-        # Retrieve the CrossFit sport category
-        crossfit = Sport.objects.filter(name="CrossFit").first()
-        
-        if not crossfit:
-            return 0  # No CrossFit category found
-        
+    def resolve_crossfit_attendance_total_count(self, info):        
         # Get all distinct workout days for CrossFit attendance
         total_crossfit_days = (
-            Workout.objects.filter(sport=crossfit)
-            .values('date')
-            .distinct()
-            .count()
-        )
+        Workout.objects.filter(sport__name__iexact="CrossFit")  # Case-insensitive match for "CrossFit"
+        .values_list('date', flat=True)  # Get the distinct workout dates
+        .distinct()
+        .count()
+    )
         
         return total_crossfit_days
     

@@ -34,7 +34,7 @@ class Exercise(models.Model):
 
 
 class Workout(models.Model):
-    date = models.DateField()
+    date = models.DateField(db_index=True)
     sport = models.ForeignKey(Sport, on_delete=models.CASCADE)
     workout_category = models.ForeignKey(WorkoutCategory, on_delete=models.CASCADE)
     duration = models.PositiveIntegerField(null=True)
