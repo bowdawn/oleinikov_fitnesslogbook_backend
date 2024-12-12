@@ -7,7 +7,7 @@ import jwt
 from django.conf import settings
 from collections import defaultdict
 from django.db.models import Max
-
+from django.core.paginator import Paginator
 
 
 class MaxWeightPerReps(graphene.ObjectType):
@@ -180,13 +180,17 @@ class Query(graphene.ObjectType):
     def resolve_all_workouts(self, info, limit=None, offset=None):
         headers = info.context.META
         auth_header = headers.get('HTTP_AUTHORIZATION', None)
+        
         if auth_header:
             token = auth_header.split()[1]
+            
             try:
                 payload = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
                 username = payload.get('username')
+                
                 if not username:
                     raise GraphQLError("Invalid token.")
+                
                 try:
                     user = User.objects.get(username=username)
                     info.context.user = user
@@ -198,42 +202,39 @@ class Query(graphene.ObjectType):
                 raise GraphQLError("Invalid token.")
         else:
             raise GraphQLError("Authorization header is missing.")
-    
+        
         user = info.context.user
+        
         if not user.is_authenticated:
             raise GraphQLError("You must be logged in to view workouts.")
-    
+        
         # Filter and order workouts
         workouts = Workout.objects.filter(user=user).order_by('-date')
+        
+        # Paginate workouts
+        paginator = Paginator(workouts, limit or 10)  # Default to 10 items per page if limit is None
+        page = paginator.get_page(offset // (limit or 10) + 1)
     
         # Group workouts by date
         grouped_workouts = defaultdict(list)
-        for workout in workouts:
+        for workout in page.object_list:
             grouped_workouts[workout.date].append(workout)
-    
-        # Apply pagination based on grouped dates
-        unique_dates = sorted(grouped_workouts.keys(), reverse=True)
-        total_count = len(unique_dates)
-    
-        if offset is not None:
-            unique_dates = unique_dates[offset:]
-        if limit is not None:
-            unique_dates = unique_dates[:limit]
-    
+        
         grouped_items = [
             {"date": date, "workouts": grouped_workouts[date]}
-            for date in unique_dates
+            for date in sorted(grouped_workouts.keys(), reverse=True)
         ]
-    
-        has_next_page = (offset + limit) < total_count if limit and offset is not None else False
-        has_previous_page = offset > 0 if offset is not None else False
-    
+        
+        has_next_page = page.has_next()
+        has_previous_page = page.has_previous()
+        
         return WorkoutPaginationType(
             grouped_items=grouped_items,
-            total_count=total_count,
+            total_count=paginator.count,
             has_next_page=has_next_page,
             has_previous_page=has_previous_page,
         )
+
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
     def resolve_all_workout_details(self, info):
         return WorkoutDetail.objects.all()
